@@ -59,7 +59,7 @@ jobs:
         if: success() || failure()
         with:
           name: Backend Test Results
-          path: backend/target/surefire-reports/*.xml
+          path: target/surefire-reports/*.xml
           reporter: java-junit
         continue-on-error: true
 
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
-          path: backend/target/*.jar
+          path: target/*.jar
           retention-days: 7
 
   # ==========================================
@@ -93,7 +93,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run Lint
         run: npm run lint --if-present
@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
+          path: dist
           retention-days: 7
 
   # ==========================================
