@@ -59,7 +59,7 @@ jobs:
         if: success() || failure()
         with:
           name: Backend Test Results
-          path: target/surefire-reports/*.xml
+          path: backend/target/surefire-reports/*.xml
           reporter: java-junit
         continue-on-error: true
 
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
-          path: target/*.jar
+          path: backend/target/*.jar
           retention-days: 7
 
   # ==========================================
@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: dist
+          path: frontend/dist
           retention-days: 7
 
   # ==========================================
