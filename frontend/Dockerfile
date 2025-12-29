@@ -7,9 +7,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# 复制package文件并安装依赖（利用Docker层缓存）
+# 复制package文件并安装依赖(利用Docker层缓存)
 COPY package*.json ./
-RUN npm ci --registry=https://registry.npmmirror.com
+RUN npm install --registry=https://registry.npmmirror.com
 
 # 复制源代码并构建
 COPY src ./src

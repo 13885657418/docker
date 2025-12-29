@@ -18,7 +18,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-shop123}
       TZ: Asia/Shanghai
     ports:
-      - "3306:3306"
+      - "33066:3306"
     volumes:
       # 数据持久化
       - mysql_data:/var/lib/mysql
@@ -123,7 +123,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.28.0.0/16
+        - subnet: 172.29.0.0/16
 
 # ==========================================
 # 数据卷

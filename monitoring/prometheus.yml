@@ -1,0 +1,40 @@
+# ==========================================
+# Prometheus 配置文件
+# ==========================================
+global:
+  scrape_interval: 15s        # 数据采集间隔
+  evaluation_interval: 15s    # 规则评估间隔
+  external_labels:
+    monitor: 'shop-system'
+
+# 告警规则文件
+rule_files:
+  # - "alert_rules.yml"
+
+# 采集配置
+scrape_configs:
+  # Prometheus 自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 容器指标采集 (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metrics_path: /metrics
+
+  # 主机指标采集 (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # 后端服务监控 (Spring Boot Actuator - 可选)
+  - job_name: 'backend'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['backend:8080']
+    # 如果后端没有开启actuator，可以注释此配置
+    # relabel_configs:
+    #   - source_labels: [__address__]
+    #     target_label: instance

@@ -1,0 +1,160 @@
+# ==========================================
+# Backend ConfigMap 配置
+# ==========================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: shop-system
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  MYSQL_HOST: "mysql"
+  MYSQL_DATABASE: "shop_db"
+  JAVA_OPTS: "-Xms256m -Xmx512m"
+  TZ: "Asia/Shanghai"
+
+---
+# ==========================================
+# Backend Secret
+# ==========================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secret
+  namespace: shop-system
+type: Opaque
+data:
+  # Base64 encoded: root
+  MYSQL_USERNAME: cm9vdA==
+  # Base64 encoded: root123
+  MYSQL_PASSWORD: cm9vdDEyMw==
+
+---
+# ==========================================
+# Backend Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: shop-system
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: shop-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/shop_db?serverTimezone=Asia/Shanghai&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: MYSQL_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: MYSQL_PASSWORD
+            - name: JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: JAVA_OPTS
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: TZ
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "768Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/product/page
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/product/page
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+---
+# ==========================================
+# Backend Service
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: shop-system
+  labels:
+    app: backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: backend
+
+---
+# ==========================================
+# Backend HorizontalPodAutoscaler (可选)
+# ==========================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: shop-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

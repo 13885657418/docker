@@ -1,0 +1,10 @@
+# ==========================================
+# Kubernetes 命名空间配置
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-system
+  labels:
+    app: shop-system
+    environment: production
