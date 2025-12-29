@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="logo" @click="$router.push('/')">
           <el-icon size="24"><ShoppingCart /></el-icon>
-          <span>电商系统</span>
+          <span>电商 统</span>
         </div>
         
         <div class="nav-menu">
